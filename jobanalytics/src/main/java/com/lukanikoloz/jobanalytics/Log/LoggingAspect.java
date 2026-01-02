@@ -35,9 +35,8 @@ public class LoggingAspect {
 
     @AfterThrowing(pointcut = "within(@org.springframework.web.bind.annotation.RestController *)", throwing = "exception")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable exception) {
-        /*log.error("Exception thrown in method: " + joinPoint.getSignature().getName() +
-                ", Exception message: " + exception.getMessage());*/
-        log.error("error");
+        log.error("my error --> Exception thrown in method: " + joinPoint.getSignature().getName() +
+                ", Exception message: " + exception.getMessage());
     }
 
 }
