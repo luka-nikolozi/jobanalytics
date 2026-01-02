@@ -10,9 +10,11 @@ import com.lukanikoloz.jobanalytics.domain.Entity.CvVersion;
 import com.lukanikoloz.jobanalytics.domain.Entity.JobApplication;
 import com.lukanikoloz.jobanalytics.domain.Entity.Platform;
 import com.lukanikoloz.jobanalytics.domain.Request.CreateJobCreateRequest;
+import com.lukanikoloz.jobanalytics.domain.Request.UpdateJobApplicationRequest;
 import com.lukanikoloz.jobanalytics.domain.Response.JobApplicationResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -92,6 +94,51 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
         jobApplicationRepository.save(job);
 
+    }
+
+    @Transactional
+    @Override
+    public JobApplicationResponse update(Long id, UpdateJobApplicationRequest req) {
+        JobApplication job = jobApplicationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("JobApplication not found"));
+
+        // simple fields
+        if (req.companyName() != null) job.setCompanyName(req.companyName());
+        if (req.companySize() != null) job.setCompanySize(req.companySize());
+        if (req.hasReferral() != null) job.setHasReferral(req.hasReferral());
+
+        if (req.field() != null) job.setField(req.field());
+        if (req.hrContacted() != null) job.setHrContacted(req.hrContacted());
+        if (req.hrInterview() != null) job.setHrInterview(req.hrInterview());
+        if (req.homeProject() != null) job.setHomeProject(req.homeProject());
+        if (req.techInterview() != null) job.setTechInterview(req.techInterview());
+
+        if (req.note() != null) job.setNote(req.note());
+        if (req.status() != null) job.setStatus(req.status());
+
+        // relations by id (only if provided)
+        if (req.cvVersionId() != null) {
+            CvVersion cv = cvVersionRepository.findById(req.cvVersionId())
+                    .orElseThrow(() -> new IllegalArgumentException("CV version not found"));
+            job.setCvVersion(cv);
+        }
+
+        // allow platform to be set OR removed
+        if (req.platformId() != null) {
+            Platform platform = platformRepository.findById(req.platformId())
+                    .orElseThrow(() -> new IllegalArgumentException("Platform not found"));
+            job.setPlatform(platform);
+        }
+
+        if (req.countryId() != null) {
+            Country country = countryRepository.findById(req.countryId())
+                    .orElseThrow(() -> new IllegalArgumentException("Country not found"));
+            job.setCountry(country);
+        }
+
+        JobApplication saved = jobApplicationRepository.save(job);
+
+        return toResponse(saved);
     }
 
 

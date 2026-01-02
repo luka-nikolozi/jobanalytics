@@ -2,6 +2,7 @@ package com.lukanikoloz.jobanalytics.Controller;
 
 import com.lukanikoloz.jobanalytics.Service.JobApplicationService;
 import com.lukanikoloz.jobanalytics.domain.Request.CreateJobCreateRequest;
+import com.lukanikoloz.jobanalytics.domain.Request.UpdateJobApplicationRequest;
 import com.lukanikoloz.jobanalytics.domain.Response.JobApplicationResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -29,10 +30,18 @@ public class JobApplicationController {
         return jobApplicationService.getByCompanyName(companyName);
     }
 
-    @PostMapping("/createNewJob")
+    @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public void create(@Valid @RequestBody CreateJobCreateRequest request) {
         jobApplicationService.create(request);
+    }
+
+    @PatchMapping("/{id}")
+    public JobApplicationResponse update(
+            @PathVariable Long id,
+            @RequestBody UpdateJobApplicationRequest request
+    ) {
+        return jobApplicationService.update(id, request);
     }
 
 
