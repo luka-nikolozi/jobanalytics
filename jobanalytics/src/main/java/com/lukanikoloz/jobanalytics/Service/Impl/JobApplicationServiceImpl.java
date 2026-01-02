@@ -5,10 +5,7 @@ import com.lukanikoloz.jobanalytics.Repository.CvVersionRepository;
 import com.lukanikoloz.jobanalytics.Repository.JobApplicationRepository;
 import com.lukanikoloz.jobanalytics.Repository.PlatformRepository;
 import com.lukanikoloz.jobanalytics.Service.JobApplicationService;
-import com.lukanikoloz.jobanalytics.domain.Entity.Country;
-import com.lukanikoloz.jobanalytics.domain.Entity.CvVersion;
-import com.lukanikoloz.jobanalytics.domain.Entity.JobApplication;
-import com.lukanikoloz.jobanalytics.domain.Entity.Platform;
+import com.lukanikoloz.jobanalytics.domain.Entity.*;
 import com.lukanikoloz.jobanalytics.domain.Request.CreateJobCreateRequest;
 import com.lukanikoloz.jobanalytics.domain.Request.UpdateJobApplicationRequest;
 import com.lukanikoloz.jobanalytics.domain.Response.JobApplicationResponse;
@@ -76,10 +73,12 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         Country country = countryRepository.findById(request.countryId())
                 .orElseThrow(() -> new IllegalArgumentException("Country not found"));
 
+        validateCompanySize(request.companySize());
+
         JobApplication job = new JobApplication(
                 cvVersion,
                 request.companyName(),
-                request.companySize(),
+                request.companySize().toUpperCase(),
                 request.hasReferral(),
                 platform,
                 country,
@@ -98,40 +97,43 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
     @Transactional
     @Override
-    public JobApplicationResponse update(Long id, UpdateJobApplicationRequest req) {
+    public JobApplicationResponse update(Long id, UpdateJobApplicationRequest request) {
         JobApplication job = jobApplicationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("JobApplication not found"));
 
         // simple fields
-        if (req.companyName() != null) job.setCompanyName(req.companyName());
-        if (req.companySize() != null) job.setCompanySize(req.companySize());
-        if (req.hasReferral() != null) job.setHasReferral(req.hasReferral());
+        if (request.companyName() != null) job.setCompanyName(request.companyName());
+        if(request.companySize() != null){
+            validateCompanySize(request.companySize());
+            job.setCompanySize(request.companySize().toUpperCase());
+        }
+        if (request.hasReferral() != null) job.setHasReferral(request.hasReferral());
 
-        if (req.field() != null) job.setField(req.field());
-        if (req.hrContacted() != null) job.setHrContacted(req.hrContacted());
-        if (req.hrInterview() != null) job.setHrInterview(req.hrInterview());
-        if (req.homeProject() != null) job.setHomeProject(req.homeProject());
-        if (req.techInterview() != null) job.setTechInterview(req.techInterview());
+        if (request.field() != null) job.setField(request.field());
+        if (request.hrContacted() != null) job.setHrContacted(request.hrContacted());
+        if (request.hrInterview() != null) job.setHrInterview(request.hrInterview());
+        if (request.homeProject() != null) job.setHomeProject(request.homeProject());
+        if (request.techInterview() != null) job.setTechInterview(request.techInterview());
 
-        if (req.note() != null) job.setNote(req.note());
-        if (req.status() != null) job.setStatus(req.status());
+        if (request.note() != null) job.setNote(request.note());
+        if (request.status() != null) job.setStatus(request.status());
 
         // relations by id (only if provided)
-        if (req.cvVersionId() != null) {
-            CvVersion cv = cvVersionRepository.findById(req.cvVersionId())
+        if (request.cvVersionId() != null) {
+            CvVersion cv = cvVersionRepository.findById(request.cvVersionId())
                     .orElseThrow(() -> new IllegalArgumentException("CV version not found"));
             job.setCvVersion(cv);
         }
 
         // allow platform to be set OR removed
-        if (req.platformId() != null) {
-            Platform platform = platformRepository.findById(req.platformId())
+        if (request.platformId() != null) {
+            Platform platform = platformRepository.findById(request.platformId())
                     .orElseThrow(() -> new IllegalArgumentException("Platform not found"));
             job.setPlatform(platform);
         }
 
-        if (req.countryId() != null) {
-            Country country = countryRepository.findById(req.countryId())
+        if (request.countryId() != null) {
+            Country country = countryRepository.findById(request.countryId())
                     .orElseThrow(() -> new IllegalArgumentException("Country not found"));
             job.setCountry(country);
         }
@@ -139,6 +141,20 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         JobApplication saved = jobApplicationRepository.save(job);
 
         return toResponse(saved);
+    }
+
+    private void validateCompanySize(String companySize) {
+        if (companySize == null) {
+            throw new IllegalArgumentException("companySize is required");
+        }
+
+        try {
+            CompanySize.valueOf(companySize.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                    "companySize must be one of: S, M, L"
+            );
+        }
     }
 
 
