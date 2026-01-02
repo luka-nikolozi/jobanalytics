@@ -48,19 +48,17 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     }
 
     @Override
-    public List<JobApplicationResponse> getByCompanyName(String jobName) {
-        return jobApplicationRepository.findJobApplicationByCompanyName(jobName)
-                .stream()
-                .map(JobApplicationServiceImpl::toResponse)
-                .toList();
+    public JobApplicationResponse getByCompanyName(String jobName) {
+        JobApplication jobApplication = jobApplicationRepository.findJobApplicationByCompanyName(jobName);
+        return toResponse(jobApplication);
     }
 
 
     @Override
     public void create(CreateJobCreateRequest request) {
 
-        List<JobApplication> jobApplications = jobApplicationRepository.findJobApplicationByCompanyName(request.companyName());
-        if (!jobApplications.isEmpty()) {
+        JobApplication jobApplications = jobApplicationRepository.findJobApplicationByCompanyName(request.companyName());
+        if (jobApplications != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Job application already exists");
         }
 
@@ -98,6 +96,10 @@ public class JobApplicationServiceImpl implements JobApplicationService {
 
 
     private static JobApplicationResponse toResponse(JobApplication job) {
+        if(job == null){
+            return null;
+        }
+
         var cv = job.getCvVersion();
         var platform = job.getPlatform();
         var country = job.getCountry();

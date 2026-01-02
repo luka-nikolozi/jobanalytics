@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
-    List<JobApplication> findJobApplicationByCompanyName(String companyName);
+    JobApplication findJobApplicationByCompanyName(String companyName);
 }

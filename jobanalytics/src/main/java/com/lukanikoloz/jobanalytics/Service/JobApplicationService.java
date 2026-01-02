@@ -8,7 +8,7 @@ import java.util.List;
 public interface JobApplicationService {
     JobApplicationResponse getById(Long id);
 
-    List<JobApplicationResponse> getByCompanyName(String jobName);
+    JobApplicationResponse getByCompanyName(String jobName);
 
     void create(CreateJobCreateRequest request);
 }

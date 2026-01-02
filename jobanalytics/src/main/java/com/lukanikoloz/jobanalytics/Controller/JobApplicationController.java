@@ -25,7 +25,7 @@ public class JobApplicationController {
     }
 
     @GetMapping("/by-company/{companyName}")
-    public List<JobApplicationResponse> getJobByCompanyName(@PathVariable String companyName) {
+    public JobApplicationResponse getJobByCompanyName(@PathVariable String companyName) {
         return jobApplicationService.getByCompanyName(companyName);
     }
 
